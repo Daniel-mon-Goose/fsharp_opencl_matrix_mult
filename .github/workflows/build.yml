@@ -1,25 +1,32 @@
-name: FAKE Build
-
+name: Main
 on:
   push:
+    branches:
+      - master
   pull_request:
-  workflow_dispatch:
+    branches:
+      - master
 
 jobs:
-  win-build:
-    name: Windows Build
-    runs-on: windows-latest
-    defaults:
-      run:
-        shell: cmd
+  build:
+    runs-on: ${{ matrix.image }}
+    strategy:
+      matrix:
+        image: [windows-latest]
+    env:
+      NUGET_PACKAGES: ${{ github.workspace }}/.github/nuget-packages
     steps:
-      - name: System Info
-        run: systeminfo
-
       - uses: actions/checkout@v2
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+      - name: NuGet Cache
+        uses: actions/cache@v1.1.0
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}.nuget.${{ hashFiles('**/*.fsproj') }}
+      - name: Setup .NET Core SDK
+        uses: actions/setup-dotnet@v1.7.2
+        with:
+          dotnet-version: '5.0.101'
 
       - name: Install OpenCL
         run: |
@@ -29,14 +36,6 @@ jobs:
           set OCL_ROOT=%NUGETDIR%\opencl-nug.0.777.77\build\native
           # Install OpenCL Runtime
           choco install opencl-intel-cpu-runtime
-      - name: Download "clinfo.exe"
-        uses: carlosperate/download-file-action@v1.0.3
-        with:
-          file-url: https://ci.appveyor.com/api/projects/oblomov/clinfo/artifacts/clinfo.exe?job=platform:+x64
-          file-name: clinfo.exe
-
-      - name: OpenCL Info
-        run: clinfo.exe
 
       - name: Build .NET Assemblies
         run: dotnet build --configuration Release
