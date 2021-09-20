@@ -1,3 +1,3 @@
 module Program
     
-let [<EntryPoint>] main _ = 0
+let [<EntryPoint>] Main _ = 0

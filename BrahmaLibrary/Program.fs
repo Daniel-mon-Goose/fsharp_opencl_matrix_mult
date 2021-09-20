@@ -1,4 +1,4 @@
 module BrahmaLibrary.Program  
    
 [<EntryPoint>]     
-let main argv = 0
+let Main argv = 0
